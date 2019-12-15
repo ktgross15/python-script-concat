@@ -1,0 +1,14 @@
+{
+    "id": "python-script-concat",
+    "version": "0.0.1",
+    "meta": {
+        "label": "Python Script Concatenation",
+        "description": "beep",
+        "author": "ktgross15",
+        "icon": "icon-download-alt",
+        "tags": ["python"],
+        // URL where the user can learn more about the plugin - add later
+        "url": "",
+        "licenseInfo": "Apache Software License"
+    }
+}

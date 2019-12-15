@@ -1,0 +1,66 @@
+/* This file is the descriptor for the python runnable python-script-concat-export */
+{
+    "meta": {
+        "label": "Concatenate & Export Python Scripts",
+        "description": "Concatenate all python scripts in a flow and export them to an external python script",
+        "icon": "icon-download-alt"
+    },
+
+    /* whether the runnable's code is untrusted */
+    "impersonate": false,
+
+
+    /* params:
+    DSS will generate a formular from this list of requested parameters.
+    Your component code can then access the value provided by users using the "name" field of each parameter.
+
+    Available parameter types include:
+    STRING, INT, DOUBLE, BOOLEAN, DATE, SELECT, TEXTAREA, DATASET, DATASET_COLUMN, MANAGED_FOLDER, PRESET and others.
+
+    For the full list and for more details, see the documentation: https://doc.dataiku.com/dss/latest/plugins/reference/params.html
+    */
+    "params": [
+        {
+            "name": "output_filename",
+            "label": "Output Filename",
+            "type": "STRING",
+            "description": "Name of output python file",
+            "mandatory": true
+        },
+        {
+            "name": "output_folder",
+            "label": "Output Folder",
+            "type": "STRING",
+            "description": "Folder where python file and input datasets live",
+            "mandatory": true
+        }
+    ],
+
+    /* list of required permissions on the project to see/run the runnable */
+    "permissions": [],
+
+    /* what the code's run() returns:
+       - NONE : no result
+       - HTML : a string that is a html (utf8 encoded)
+       - FOLDER_FILE : a (folderId, path) pair to a file in a folder of this project (json-encoded)
+       - FILE : raw data (as a python string) that will be stored in a temp file by DSS
+       - URL : a url
+     */
+    "resultType": "URL",
+    "resultLabel": "tktktk",
+
+    /* Macro roles define where this macro will appear in DSS GUI. They are used to pre-fill a macro parameter with context.
+
+       Each role consists of:
+        - type: where the macro will be shown
+            * when selecting DSS object(s): DATASET, DATASETS, API_SERVICE, API_SERVICE_VERSION, BUNDLE, VISUAL_ANALYSIS, SAVED_MODEL, MANAGED_FOLDER
+            * in the global project list: PROJECT_MACROS
+        - targetParamsKey(s): name of the parameter(s) that will be filled with the selected object
+    */
+    "macroRoles": [
+     /* {
+            "type": "DATASET",
+            "targetParamsKey": "input_dataset"
+        } */
+    ]
+}
