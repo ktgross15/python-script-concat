@@ -45,15 +45,8 @@ class PythonConcatenator(Runnable):
         elif state == 'ABORTED':
             raise Exception("Recursive rebuild job was aborted. Please check logs and re-run macro.")
 
-    def get_folder_handle(self, parent_folder_name):
-        folder_name = self.config.get('folder_name', '')
-        self.project.create_managed_folder(folder_name)
-        # managed_folder_name = '{}/{}'.format(parent_folder_name, folder_name)
-        # self.project.create_managed_folder(managed_folder_name)
-
-        project_folder_name = self.project_key + '.' + self.config.get('folder_name', '')
-        folder_handle = dataiku.Folder(project_folder_name)
-        return folder_handle
+    def get_folder_handle(self):
+        pass
 
     def run(self, progress_callback):
 
@@ -75,7 +68,12 @@ class PythonConcatenator(Runnable):
 
         # create folders - first prob check if exists (make this a function maybe)
         # later test if folder exists, then create if not
-        folder_handle = self.get_folder_handle('outputs')
+        folder_name = self.config.get('folder_name', '')
+        # output_folder_name = 'outputs/{}'.format(folder_name)
+        self.project.create_managed_folder(folder_name)
+
+        full_folder_name = self.project_key + '.' + self.config.get('folder_name', '')
+        folder_handle = dataiku.Folder(full_folder_name)
 
         start_times_df = generate_starttimes_df(job)
         df_all_recipes = generate_all_recipes_df(self.project, start_times_df)
