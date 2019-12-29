@@ -1,3 +1,4 @@
+import dataiku
 from dataiku.customrecipe import *
 import pandas as pd
 import numpy as np
@@ -75,7 +76,12 @@ def add_line(all_lines, line, f):
     f.write('\n')
     all_lines.append(line)
 
-def generate_input_csv(input_name):
-    '''WRITE FUNCTION'''
-    pass
+
+def generate_csv(project_key, folder_handle, ds_name):
+    file_name = '{}.csv'.format(ds_name)
+    with folder_handle.get_writer(file_name) as writer:
+        project_ds_name = project_key + '.' + ds_name
+        dataset = dataiku.Dataset(project_ds_name)
+        df = dataset.get_dataframe()
+        df.to_csv(writer)
     

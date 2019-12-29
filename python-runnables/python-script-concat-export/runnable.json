@@ -28,10 +28,10 @@
             "mandatory": true
         },
         {
-            "name": "output_folder",
-            "label": "Output Folder",
+            "name": "folder_name",
+            "label": "Folder Name",
             "type": "STRING",
-            "description": "Folder where python file and input datasets live",
+            "description": "Folder where python file and input/output datasets live",
             "mandatory": true
         }
     ],

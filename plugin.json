@@ -3,12 +3,12 @@
     "version": "0.0.1",
     "meta": {
         "label": "Python Script Concatenation",
-        "description": "beep",
+        "description": "Concatenate and export all python scripts to a single python script that can be run outside of DSS. All input datasets will be exported as CSVs.",
         "author": "ktgross15",
         "icon": "icon-download-alt",
         "tags": ["python"],
         // URL where the user can learn more about the plugin - add later
-        "url": "",
+        "url": "https://www.dataiku.com/dss/plugins/info/collaborative-filtering.html",
         "licenseInfo": "Apache Software License"
     }
 }

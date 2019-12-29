@@ -1,6 +1,5 @@
 # This file is the actual code for the Python runnable python-script-concat-export
 from dataiku.runnables import Runnable
-# from dataiku.customrecipe import *
 import dataiku
 import pandas as pd
 import numpy as np
@@ -20,16 +19,15 @@ class PythonConcatenator(Runnable):
 		"""
         self.project_key = project_key
         self.config = config
-        self.plugin_config = plugin_config
+        # self.plugin_config = plugin_config
         self.client = dataiku.api_client()
-
+        self.project = self.client.get_project(self.project_key)
 
     def create_rebuild_job(self, project, final_datasets):
         '''Format list of outputs for job and run job to recursively rebuild flow'''
         outputs_list = [{"id": ds} for ds in final_datasets]
         job = project.start_job({"type":"RECURSIVE_FORCED_BUILD", "outputs":outputs_list})
         return job
-
 
     def check_rebuild_job_status(self, job):
         # check job state every second while job is running
@@ -47,6 +45,15 @@ class PythonConcatenator(Runnable):
         elif state == 'ABORTED':
             raise Exception("Recursive rebuild job was aborted. Please check logs and re-run macro.")
 
+    def get_folder_handle(self, parent_folder_name):
+        folder_name = self.config.get('folder_name', '')
+        self.project.create_managed_folder(folder_name)
+        # managed_folder_name = '{}/{}'.format(parent_folder_name, folder_name)
+        # self.project.create_managed_folder(managed_folder_name)
+
+        project_folder_name = self.project_key + '.' + self.config.get('folder_name', '')
+        folder_handle = dataiku.Folder(project_folder_name)
+        return folder_handle
 
     def run(self, progress_callback):
 
@@ -56,19 +63,22 @@ class PythonConcatenator(Runnable):
 
         f = open(output_filename,"w+")
 
-        project = self.client.get_project(self.project_key)
-        all_recipes = project.list_recipes()
+        all_recipes = self.project.list_recipes()
 
         all_input_datasets = set([input_ds for rcp in all_recipes for input_ds in get_recipe_inputs(rcp)])
         all_output_datasets = set([output_ds for rcp in all_recipes for output_ds in get_recipe_outputs(rcp)])
         initial_datasets = list(all_input_datasets - all_output_datasets)
         final_datasets = list(all_output_datasets - all_input_datasets)
 
-        job = self.create_rebuild_job(project, final_datasets)
+        job = self.create_rebuild_job(self.project, final_datasets)
         self.check_rebuild_job_status(job)
 
+        # create folders - first prob check if exists (make this a function maybe)
+        # later test if folder exists, then create if not
+        folder_handle = self.get_folder_handle('outputs')
+
         start_times_df = generate_starttimes_df(job)
-        df_all_recipes = generate_all_recipes_df(project, start_times_df)
+        df_all_recipes = generate_all_recipes_df(self.project, start_times_df)
         # include pyspark too later
         python_recipes_df = df_all_recipes[df_all_recipes['recipe_type']=='python'].reset_index(drop=True)
 
@@ -89,7 +99,7 @@ class PythonConcatenator(Runnable):
             for line in pay_lines:
 
                 # skip duplicate package imports and "skip string" lines
-                if ("import" in line and line in all_lines) or (any(skip_str in line for skip_str in skip_lines)):
+                if ("import" in line and line in all_lines) or ("import dataiku" in line) or ("from dataiku" in line) or (any(skip_str in line for skip_str in skip_lines)):
                     continue
 
                 # add to filename-object mapping dict
@@ -105,7 +115,7 @@ class PythonConcatenator(Runnable):
                             if object_name and object_name in line:
                                 if input_name in initial_datasets:
                                     # if it's an initial recipe, generate an input file and then read from it
-                                    generate_input_csv(input_name, line)
+                                    generate_csv(self.project_key, folder_handle, input_name)
                                     read_input_line = "df = pd.read_csv('{}.csv')".format(input_name)
                                     add_line(all_lines, read_input_line, f)
                                 else:
@@ -125,20 +135,20 @@ class PythonConcatenator(Runnable):
                                 df_name = line[df_name_loc:-1]
                                 name_change_str = '{}_df = {}.copy()'.format(output_name, df_name)
                                 add_line(all_lines, name_change_str, f)
+                        elif output_name in final_datasets:
+                            object_name = output_ds_obj_dict[output_name]
+                            # generate_csv(self.project_key, output_folder_handle, output_name)
 
                 else:
                     # add all other lines
                     add_line(all_lines, line, f)
-
         f.close()
 
-        # later test if folder exists, then create if not
-        output_folder_name = self.config.get('output_folder', '')
-        folder_handle = project.create_managed_folder(output_folder_name)
-        fr = open(output_filename, "r")
-        folder_handle.put_file(output_filename, fr.read())
+        with folder_handle.get_writer(output_filename) as writer:
+            fr = open(output_filename, "r")
+            writer.write(fr.read())
+        fr.close()
 
         result = '<span>Python code written to folder: {}</span>'.format(output_folder_name)
-      
         return result
         
